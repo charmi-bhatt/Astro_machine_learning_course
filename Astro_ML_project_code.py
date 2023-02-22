@@ -191,3 +191,5 @@ print("Mean squared error: ", mean_squared_error(test_labels, predicted_labels))
 # Show the average percentage error
 print("Average percentage error: ", np.mean(np.abs((test_labels - predicted_labels)/test_labels))*100)
 
+#Conclusion: It can be seen from last piece of the code that how equivalent width of few diffuse interstellar bands can be used to estimate hydrogen abundance 
+#in line of sight with average percentage error below 2% using Random Forest regression model.
