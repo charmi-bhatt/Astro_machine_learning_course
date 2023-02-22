@@ -1,13 +1,13 @@
-#This code is divided into 5 sections: data preprocessing and then one for each machine learning technique used. 
+#This code is divided into 5 sections: data preprocessing and then one for each of the 4 machine learning techniques used. 
 #Section are named as follows:
 #1. Data pre-processing 
 #2. Correlation Matrix 
 #3. PCA 
 #4. t-SNE
-#5. Supervised Learning - Regression
+#5. Supervised Learning - Regression (Linear, Gradient Boosting and Random Forest)
 
 #Data used includes 11 parameters across 133 sightlines. 
-#Those parameters are physical propoerties of the sightline and equivalent width of 8 diffuse interstelar bands, 
+#Those parameters are physical propoerties of the sightline and equivalent width of 8 diffuse interstelar bands (DIBs). 
 
 
 import pandas as pd
@@ -31,12 +31,14 @@ from sklearn.ensemble import GradientBoostingRegressor
 
 raw_data = pd.read_csv(r"C:\Users\Charmi Bhatt\OneDrive\Desktop\AstroML\Project\scott_data.txt", delim_whitespace=(True)) #, header= [0:])
 raw_data = raw_data.fillna(0)
-EBV = raw_data.iloc[:,2]
+EBV = raw_data.iloc[:,2] #interstellar extinction
 pd.to_numeric(EBV)
-logNH = raw_data.iloc[:,3]
+logNH = raw_data.iloc[:,3] #Atomic Hydrogen abundance 
 pd.to_numeric(logNH)
-logNH2 = raw_data.iloc[:,6]
+logNH2 = raw_data.iloc[:,6] #Molecular Hydrogen abundance 
 pd.to_numeric(logNH2)
+
+#8 DIBs with last 4 digits representing their wavelength in Angstroms. 
 DIB_5487 = raw_data.iloc[:,9]
 pd.to_numeric(DIB_5487)
 DIB_5705 = raw_data.iloc[:,12]
@@ -54,7 +56,7 @@ pd.to_numeric(DIB_6283)
 DIB_6614 = raw_data.iloc[:,30]
 pd.to_numeric(DIB_6614)
 
-#creating pandas dataframe of the  only data we need. Shape:(133,11)
+#creating pandas DataFrame of the data we need. Shape:(133,11)
 data = np.array([EBV, logNH, logNH2, DIB_5487, DIB_5705, DIB_5780, DIB_5797, DIB_6196, DIB_6204, DIB_6283, DIB_6614,]).transpose()
 data = pd.DataFrame({'E(B-V)':data[:,0], 'log(N(H))':data[:,1], 'log(N(H2))':data[:,2], 'DIB_5487': data[:,3], 'DIB_5705':data[:,4], 'DIB_5780':data[:,5], 'DIB_5797':data[:,6], 'DIB_6196':data[:,7], 'DIB_6204' :data[:,8], 'DIB_6283':data[:,9], 'DIB_6614':data[:,10]})
 
@@ -62,6 +64,7 @@ data = pd.DataFrame({'E(B-V)':data[:,0], 'log(N(H))':data[:,1], 'log(N(H2))':dat
 #2. Correlation matrix
 # It displays how 11 parameters are correlated to each other
 corr_matrix = data.corr()
+
 #plotting correlation using heatmap
 sns.set (rc = {'figure.figsize':(9, 7)})
 sns.heatmap(corr_matrix, annot=True, linewidths=.5)
@@ -71,14 +74,13 @@ plt.show()
 #3. PCA 
 #It helps us reduce dimensionality of the data
 
-
 #standardize data before appyling PCA algorithm 
 scaler = StandardScaler()
 scaler.fit(data) #demean and std dev = 1
 data_rescaled = scaler.transform(data)
 
 
-pca = PCA(n_components = 0.95) #n_cpmponents = 0.95 = compoenents required to capture 95% variance
+pca = PCA(n_components = 0.95) #n_components = 0.95 = components required to capture 95% variance
 pca.fit(data_rescaled) 
 
 print("Explained variance ratio: ")
@@ -93,6 +95,7 @@ print(pca.explained_variance_)
 print("PCA noise varinace: ")
 print(pca.noise_variance_)
 
+#We got 4 components that capture 95% variance in the data
 #Visual representation of Cumulative variance by each PCA component
 plt.rcParams["figure.figsize"] = (12,6)
 fig, ax = plt.subplots()
@@ -119,7 +122,7 @@ plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 plt.show()
 
-
+#Using t-SNE as it can handle non linear relations between different features in the dataset, unlike PCA which can only do linear relations. 
 # Create a t-SNE object.
 tsne = TSNE(n_components=2, perplexity=20, n_iter=4000)
 # Fit the t-SNE object to the data
@@ -135,7 +138,7 @@ plt.show()
 
 #5. Supervised Learning - Regression
 
-#Here we aim to train the machine to estimate log(N(H)) given the equivalent width of 8 diffuse interstellar bands. 
+# Here we aim to train the machine to estimate log(N(H)) given the equivalent width of 8 diffuse interstellar bands. 
 #Thus, for now, we remove all other parameters except equivalent widths from the dataset and name the new data "Known".  
 #Since we are training the machine to estimate log(N(H)), it is called "to_be_predicted" dataset. 
  
@@ -148,7 +151,7 @@ print("Known dataset dimenisons: ", known.shape)
 
 
 #Pairplot visualization 
-#sns.pairplot(data)
+sns.pairplot(data)
 
 
 #Splitting data into training (80%) and testing(20%) datasets
